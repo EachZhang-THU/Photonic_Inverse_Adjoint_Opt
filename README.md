@@ -1,4 +1,4 @@
-# Photonic_Inverse_Adjoint_Opt：基于伴随法的光子器件逆向设计
+# Photonic_Inverse_Adjoint_Opt：基于伴随法的光子超表面器件逆向设计
 
 本项目是一个面向多端口光子超表面器件的逆向设计研究原型。它通过 Ansys Lumerical FDTD 完成正向/伴随电磁仿真，以归一化材料密度为设计变量，结合平滑二值投影、Adam 优化和可选的 KLayout DRC（Design Rule Check）修复，迭代得到高/低折射率材料分布。
 
