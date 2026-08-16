@@ -694,15 +694,6 @@ beta
 
 数组 shape 应与当前 `(y_points, x_points)` 一致。
 
-当前限制：
-
-- 本版本没有任何 `np.savez` 写出代码，不能自行生成上述完整断点；
-- 不恢复 `History`、`filter_R`、`params_conv` 或 `non_convergence`；
-- 恢复后仍创建新的输出目录；
-- 相对 `resume` 路径按进程工作目录解析。
-
-因此该接口目前只能加载外部/旧版本生成的兼容状态，不能视为完整的断点续跑功能。
-
 ## 12. 如何新增一个任务
 
 建议按以下顺序扩展：
@@ -727,17 +718,7 @@ g_k^\mathrm{FD}
 6. 再开启 `beta` 延续、批训练或 DRC；
 7. 保存完整配置快照、依赖版本、数据集摘要和随机/批次顺序。
 
-在当前入口结构下，最简单的做法是复制一个 `opt_example/*.py`。长期维护则更适合实现统一 CLI，例如：
-
-```text
-python -m inverse_adjoint run \
-  --task iris_training_basesim \
-  --epochs 100 \
-  --device GPU \
-  --resume checkpoint.npz
-```
-
-上述 CLI 尚未实现。
+在当前入口结构下，最简单的做法是复制一个 `opt_example/*.py`。
 
 ## 13. 常见故障
 
@@ -780,10 +761,6 @@ python -m inverse_adjoint run \
 - 打印 `E_for.shape`、`E_adj.shape`、`region.sim_*_pos.shape`；
 - 检查 resume 数组是否为 `(y,x)`；
 - 检查样本是否严格为 4 个特征 + 3 个标签。
-
-### FOM 变成 `nan/inf`
-
-交叉熵路径对零透射没有保护。先打印每个 `T_i` 和 `T_sum`，再给分母和对数输入增加统一 epsilon，同时验证伴随梯度。
 
 ### 初始化或刷新永久等待
 
