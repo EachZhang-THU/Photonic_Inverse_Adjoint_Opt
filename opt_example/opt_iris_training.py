@@ -43,15 +43,16 @@ def main():
         grad_all = np.zeros((region.y_points, region.x_points))
         all_batch_fom = np.zeros((cfg.dataset.batch_size, len(obj.fom_name)))
 
+        setting.refresh_design_region_import(obj, region, state)
+
         for num_batch in range(cfg.dataset.batch_size):
+
             data_index_factor = (i - 1) % data_batch_num
             key = keys[num_batch + cfg.dataset.batch_size * data_index_factor]
             sample = data[key]
 
             obj.forward_source_phase[:] = sample[:len(obj.forward_source_phase)] * 360
             obj.target_fom[:] = sample[-len(obj.target_fom):]
-
-            setting.refresh_design_region_import(obj, region, state)
 
             # 进行正向仿真
             sim.make_forward_sim_2d(obj, cfg.fdtd, region)
@@ -70,8 +71,7 @@ def main():
         quant.convergence_judgment(cfg, state, history, ws, obj)
 
         deps_dparams = quant.d_quant_1bit(state.params, state, cfg)
-        # 注意：与原脚本一致，此处仍使用最后一个 batch 的 grad_eps
-        grad = grad_eps * deps_dparams
+        grad = grad_all * deps_dparams
 
         # 根据 Adam 优化算法进行梯度下降更新
         opt.adam_update(state, i, grad, cfg)

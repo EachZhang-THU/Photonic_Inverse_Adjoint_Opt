@@ -11,17 +11,6 @@ def get_source_power(obj, wavelengths):
     return np.asarray(source_power).flatten()
 
 
-def cross_entropy_loss(y_true, y_pred):
-
-    epsilon = 1e-12
-    y_pred = np.clip(y_pred, epsilon, 1. - epsilon)
-    # 计算交叉熵损失
-    N = y_true.shape[0]
-    loss = -np.sum(y_true * np.log(y_pred)) / N
-
-    return loss
-
-
 def get_fom_ce(obj, V_cell):
 
     T_fwd = np.zeros(len(obj.fom_name), dtype=np.complex128)
@@ -33,11 +22,10 @@ def get_fom_ce(obj, V_cell):
         trans_coeff = (mode_exp_data_set['a'] * np.sqrt(mode_exp_data_set['N'].real)).flatten()
 
         omega = 2.0 * np.pi * const.c / wavelengths
-        adjoint_source_power = get_source_power(obj, wavelengths)
         source_power = get_source_power(obj, wavelengths)
         phase_prefactors = trans_coeff / 4.0 / source_power
         T_fwd[i] = np.real(trans_coeff * trans_coeff.conj() / source_power)
-        temp_factor[i] = np.conj(phase_prefactors) * omega * 1j / np.sqrt(adjoint_source_power)
+        temp_factor[i] = np.conj(phase_prefactors) * omega * 1j / np.sqrt(source_power)
     T_sum = np.sum(T_fwd)
 
     for i in range(len(obj.fom_name)):
@@ -69,13 +57,12 @@ def get_fom_intensity(obj, V_cell):
         trans_coeff = (mode_exp_data_set['a'] * np.sqrt(mode_exp_data_set['N'].real)).flatten()
 
         omega = 2.0 * np.pi * const.c / wavelengths
-        adjoint_source_power = get_source_power(obj, wavelengths)
         source_power = get_source_power(obj, wavelengths)
         phase_prefactors = trans_coeff / 4.0 / source_power
         T_fwd_vs_wavelength = np.real(trans_coeff * trans_coeff.conj() / source_power)
         obj.fom[i] = np.abs(obj.target_fom[i] - T_fwd_vs_wavelength.flatten()) ** 2
         obj.factor[i] = (2 * (obj.target_fom[i] - T_fwd_vs_wavelength.flatten()) * np.conj(
-            phase_prefactors) * omega * 1j / np.sqrt(adjoint_source_power)) * V_cell * epsilon_0
+            phase_prefactors) * omega * 1j / np.sqrt(source_power)) * V_cell * epsilon_0
 
 
 def get_fom_ce_gradient_parallel(obj, data, region):
