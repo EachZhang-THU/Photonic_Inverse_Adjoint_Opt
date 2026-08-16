@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<klayout-macro>
+ <description/>
+ <version/>
+ <category>drc</category>
+ <prolog/>
+ <epilog/>
+ <doc/>
+ <autorun>false</autorun>
+ <autorun-early>false</autorun-early>
+ <priority>0</priority>
+ <shortcut/>
+ <show-in-menu>true</show-in-menu>
+ <group-name>drc_scripts</group-name>
+ <menu-path>tools_menu.drc.end</menu-path>
+ <interpreter>dsl</interpreter>
+ <dsl-interpreter-name>drc-dsl-xml</dsl-interpreter-name>
+ <text>
+
+inputFile = $input
+inputCell = $cell
+if inputCell
+source(inputFile,inputCell)
+else
+source(inputFile)
+end
+cv = RBA::CellView::active
+
+if inputFile
+fileName = File.basename(inputFile)
+else
+fileName = cv.name
+end
+reportName = fileName.sub(".gds","").sub(".GDS","") + "_drc_result"
+
+if inputCell
+reportName = fileName.sub(".gds","").sub(".GDS","") + "_" + inputCell.to_s + "_drc_180nm_result"
+else
+end
+
+report("DRC",reportName)
+
+HM = input(1,0)
+
+# Rules
+
+# ---------------------------------
+# HM.1 Min. width of HM 0.09 µm 130nm
+min_width_HM = 0.18
+r_width_HM = HM.width(min_width_HM)
+#r_width_HM = HM.width(projection, min_width_HM)
+r_width_HM.output("HM.1 Min. width of HM violation")
+
+# ---------------------------------
+# HM.2 Min. exclusion of HM with same layer 0.11 µm 0.16nm
+min_space_HM = 0.22
+r_space_HM = HM.space(min_space_HM)
+#r_space_HM = HM.space(projection, min_space_HM)
+r_space_HM.output("HM.2 Min. exclusion of HM with same layer violation")
+
+</text>
+</klayout-macro>
