@@ -16,27 +16,6 @@
 | Iris 基场叠加训练 | `opt_example/opt_iris_training_basesim.py` | 分别求 4 个输入正向基场和 3 个输出伴随基场，再对完整训练集做线性叠加 | 4 次正向基仿真 + 3 次伴随基仿真 |
 | Analog + DRC | `opt_example/opt_analog_drc.py` | 1 个有效输入、3 个输出，目标为输出 3；2D TM、空间滤波、二值化和 KLayout 修复 | 灰度阶段 1 正向 + 1 伴随；DRC 阶段 1 正向 + 1 次 KLayout |
 
-四个入口都遵循同一骨架：
-
-```mermaid
-flowchart LR
-    A[任务配置] --> B[Region / Object / OptimState]
-    B --> C[执行 LSF 创建 FDTD 模型]
-    C --> D[写入当前折射率分布]
-    D --> E[正向 FDTD]
-    E --> F[计算 FOM 与伴随源系数]
-    F --> G[伴随 FDTD]
-    G --> H[场乘积得到介电常数梯度]
-    H --> I[插值 / 投影导数 / 可选滤波链]
-    I --> J[Adam 更新 rho]
-    J --> K[投影为 epsilon 并取 n=sqrt(epsilon)]
-    K --> L[日志、曲线与检查点]
-    L --> D
-    F -->|Analog 且 beta 达上限| M[GDS 轮廓]
-    M --> N[KLayout DRC]
-    N --> O[解析违例并修正像素]
-    O --> D
-```
 
 ## 2. 目录结构
 
