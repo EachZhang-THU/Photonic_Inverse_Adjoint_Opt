@@ -3,8 +3,11 @@ numpy
 scipy
 matplotlib
 
+
 # Required by the Analog + DRC workflow (`import klayout.db`).
 klayout
+
+
 
 # `lumapi` is also required at runtime, but it is supplied with Ansys
 # Lumerical FDTD and is not installed from PyPI. Configure
