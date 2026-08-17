@@ -45,12 +45,15 @@ def main():
         plot.fom_display(obj, state, history, ws, i)
 
         if state.beta < cfg.quant.beta_max:
-            quant.convergence_judgment_analog(cfg, state, history)
-
-            # 进行伴随仿真
+            # 进行伴随仿真（此时 filter_R / beta 与正向结构一致）
             sim.make_adjoint_sim_2d_analog(obj, cfg.fdtd)
-            # 计算梯度并在内部更新参数
+            # 计算梯度（含滤波伴随链）
             grad = opt.calculate_gradient_2d_analog(obj, state, cfg, i)
+            # 执行一次 Adam 更新
+            opt.adam_update(state, i, grad, cfg)
+
+            # 梯度更新完成后统一升级，仅对下一轮生效，避免滞后错位
+            quant.convergence_judgment_analog(cfg, state, history)
         else:
             params_opt, drc_passed = drc.run_drc_iteration(
                 cfg, ws, region, obj, state.params, i)
@@ -58,10 +61,11 @@ def main():
             if drc_passed:
                 break
 
+        # 始终按当前 filter_R 生成滤波核并更新滤波参数
         setting.update_params_conv_analog(state, cfg)
 
-        # 执行量化操作
-        state.eps_opt = quant.quant_1bit(state.params, state, cfg)
+        # 执行量化操作（使用滤波后的参数，与反向链保持一致）
+        state.eps_opt = quant.quant_1bit(state.params_conv, state, cfg)
         state.index_opt = np.sqrt(state.eps_opt)
 
         plot.plot_optresult(obj, history, ws, i)

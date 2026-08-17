@@ -46,8 +46,8 @@ def convert_line_segment_sides(index_py, x_min, x_max, y_min, y_max, x_points, y
     x1, y1 = end_point
 
     # 区域参数
-    max_i = x_points
-    max_j = y_points
+    max_i = index_py.shape[1] - 1
+    max_j = index_py.shape[0] - 1
     dx_pixel, dy_pixel = (x_max - x_min) / x_points, (y_max - y_min) / y_points
 
     def get_pixel_index(x, y):
@@ -71,8 +71,7 @@ def convert_line_segment_sides(index_py, x_min, x_max, y_min, y_max, x_points, y
                     continue
                 ni, nj = i0 + di, j0 + dj
                 if 0 <= ni <= max_i and 0 <= nj <= max_j:
-                    if ni < len(index_convert) and nj < len(index_convert[0]):
-                        index_convert[ni][nj] = index
+                    index_convert[nj, ni] = index
         return index_convert
 
     # Bresenham 算法参数初始化
@@ -100,8 +99,7 @@ def convert_line_segment_sides(index_py, x_min, x_max, y_min, y_max, x_points, y
                     continue
                 ni, nj = current_i + di, current_j + dj
                 if 0 <= ni <= max_i and 0 <= nj <= max_j:
-                    if ni < len(index_convert) and nj < len(index_convert[0]):
-                        index_convert[ni][nj] = index
+                    index_convert[nj, ni] = index
 
         # 终止条件
         if current_i == i1 and current_j == j1:
@@ -172,8 +170,8 @@ def single_pixel_process(x_points, y_points, x_min, x_max, y_min, y_max,
                          x1, x2, params, param_index):
     params_opt = params.copy()
     # 区域参数
-    max_i = x_points
-    max_j = y_points
+    max_i = params.shape[1] - 1
+    max_j = params.shape[0] - 1
 
     def get_pixel_index(x, y):
         dx_pixel, dy_pixel = (x_max - x_min) / x_points, (y_max - y_min) / y_points
@@ -196,8 +194,7 @@ def single_pixel_process(x_points, y_points, x_min, x_max, y_min, y_max,
                     continue
                 ni, nj = i0 + di, j0 + dj
                 if 0 <= ni <= max_i and 0 <= nj <= max_j:
-                    if ni < len(params_opt) and nj < len(params_opt[0]):
-                        params_opt[ni][nj] = param_index
+                    params_opt[nj, ni] = param_index
     return params_opt
 
 
@@ -209,7 +206,7 @@ def process_correct_index(params, x_min, x_max, y_min, y_max, x_points, y_points
     x_pos = np.linspace(x_min, x_max, x_points)
     y_pos = np.linspace(y_min, y_max, y_points)
 
-    X, Y = np.meshgrid(x_pos, y_pos, indexing='ij')
+    X, Y = np.meshgrid(x_pos, y_pos, indexing='xy')
 
     distance = segment_distance((x1, x2), (y1, y2))
 

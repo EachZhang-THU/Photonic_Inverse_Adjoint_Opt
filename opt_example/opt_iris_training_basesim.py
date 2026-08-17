@@ -50,13 +50,14 @@ def main():
         plot.fom_display(obj, state, history, ws, i)
 
         if state.beta < cfg.quant.beta_max:
-            quant.convergence_judgment(cfg, state, history, ws, obj)
-
             deps_dparams = quant.d_quant_1bit(state.params, state, cfg)
             grad = grad_eps * deps_dparams
 
             # 根据 Adam 优化算法进行梯度下降更新
             opt.adam_update(state, i, grad, cfg)
+
+            # 梯度更新完成后统一升级，仅对下一轮生效
+            quant.convergence_judgment(cfg, state, history, ws, obj)
 
             state.eps_opt = quant.quant_1bit(state.params, state, cfg)
             state.index_opt = np.sqrt(state.eps_opt)

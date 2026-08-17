@@ -11,7 +11,7 @@ def make_config() -> TaskConfig:
         fdtd=FDTDConfig(fdtd_dimension="2D", fdtd_gui=True,
                         device="CPU", express_mode=0),
         optimizer=OptimizerConfig(max_epoch=1000),
-        quant=QuantConfig(beta_max=200.0),
+        quant=QuantConfig(beta_max=100.0, test_length=10, threshold=0.01),
         material=MaterialConfig(),
         objects=[ObjectSpec(
             filename="obj_1_m.lsf",
@@ -26,6 +26,6 @@ def make_config() -> TaskConfig:
             target_fom=[0, 0, 1],
             weight=[1, 1, 1],
         )],
-        drc=DRCConfig(),
+        drc=DRCConfig(drc_script="drc_130nm.lydrc"),
         output_dir="sim_100nm",
     )

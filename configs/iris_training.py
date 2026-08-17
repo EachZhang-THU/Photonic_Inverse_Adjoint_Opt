@@ -23,7 +23,7 @@ def make_config() -> TaskConfig:
                                  "adjoint_source_3"],
             wavelength=1550e-9,
             forward_source_phase=[0, 0, 0, 0],
-            forward_source_amp=[1, 0, 0, 0],
+            forward_source_amp=[1, 1, 1, 1],
             target_fom=[0, 1, 0],
             weight=[1, 1, 1],
         )],

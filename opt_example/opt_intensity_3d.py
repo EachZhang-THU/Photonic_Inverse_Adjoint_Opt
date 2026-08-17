@@ -44,9 +44,7 @@ def main():
         plot.fom_display(obj, state, history, ws, i)
 
         if state.beta < cfg.quant.beta_max:
-            quant.convergence_judgment(cfg, state, history, ws, obj)
-
-            # 进行伴随仿真
+            # 进行伴随仿真（此时 beta 与正向结构一致）
             sim.make_adjoint_sim_3d(obj, cfg.fdtd)
             grad_eps = opt.calculate_gradient_3d(obj, region)
 
@@ -55,6 +53,9 @@ def main():
 
             # 根据 Adam 优化算法进行梯度下降更新
             opt.adam_update(state, i, grad, cfg)
+
+            # 梯度更新完成后统一升级，仅对下一轮生效
+            quant.convergence_judgment(cfg, state, history, ws, obj)
 
             state.eps_opt = quant.quant_1bit(state.params, state, cfg)
             state.index_opt = np.sqrt(state.eps_opt)

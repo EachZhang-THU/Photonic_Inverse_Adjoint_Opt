@@ -225,6 +225,10 @@ def refresh_design_region_import_analog(obj, region, state, cfg):
 def update_params_conv_analog(state, cfg):
     """将优化参数写回带边界的参数矩阵，并更新滤波后的参数。"""
 
+    state.delta_R = cfg.drc.filter_R_max - state.filter_R
+    state.filter_kernel, state.filter_kernel_inverse = filter.gen_filter(
+        state.filter_R, 'mean')
+
     state.params_all[
         cfg.drc.filter_R_max:-cfg.drc.filter_R_max,
         cfg.drc.filter_R_max:-cfg.drc.filter_R_max,

@@ -40,35 +40,18 @@ def calculate_gradient_2d(obj, region):
 def calculate_gradient_2d_analog(obj, state, cfg, iteration):
     grad_eps = -2 * np.real(np.sum(obj.E_for * obj.E_adj, axis=2))
 
-    # 将滤波后的参数写回带边界参数矩阵
-    state.params_all[
-        cfg.drc.filter_R_max:-cfg.drc.filter_R_max,
-        cfg.drc.filter_R_max:-cfg.drc.filter_R_max,
-    ] = state.params_conv
+    R = state.filter_R
+    R_max = cfg.drc.filter_R_max
 
-    deps_dparams_hat = quant.d_quant_1bit(
-        state.params_all[
-            state.delta_R:-state.delta_R,
-            state.delta_R:-state.delta_R,
-        ],
-        state,
-        cfg,
+    # 梯度相对于滤波输出 params_conv（设计区内部，即扩展场网格的中心区域）
+    grad_conv = (
+        grad_eps[R_max:-R_max, R_max:-R_max]
+        * quant.d_quant_1bit(state.params_conv, state, cfg)
     )
 
-    # 梯度从滤波边界区域裁剪到当前滤波半径对应的有效区域
-    grad_params_hat = (
-        grad_eps[
-            state.delta_R:-state.delta_R,
-            state.delta_R:-state.delta_R,
-        ]
-        * deps_dparams_hat
-    )
-
-    # 反卷积得到设计参数梯度
-    grad = convolve2d(grad_params_hat, state.filter_kernel_inverse, mode="valid")
-
-    # 在方法内部直接更新优化参数
-    adam_update(state, iteration, grad, cfg)
+    # 滤波的伴随：full 卷积后裁剪内部 R 区域
+    grad_full = convolve2d(grad_conv, state.filter_kernel_inverse, mode="full")
+    grad = grad_full[R:-R, R:-R]
 
     return grad
 

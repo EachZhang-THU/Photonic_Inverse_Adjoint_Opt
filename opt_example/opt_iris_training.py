@@ -45,9 +45,9 @@ def main():
 
         setting.refresh_design_region_import(obj, region, state)
 
-        for num_batch in range(cfg.dataset.batch_size):
+        data_index_factor = (i - 1) % data_batch_num
 
-            data_index_factor = (i - 1) % data_batch_num
+        for num_batch in range(cfg.dataset.batch_size):
             key = keys[num_batch + cfg.dataset.batch_size * data_index_factor]
             sample = data[key]
 
@@ -68,13 +68,16 @@ def main():
         grad_all = grad_all / cfg.dataset.batch_size
 
         plot.fom_training_display(obj, cfg, state, history, ws, i, all_batch_fom)
-        quant.convergence_judgment(cfg, state, history, ws, obj)
 
         deps_dparams = quant.d_quant_1bit(state.params, state, cfg)
         grad = grad_all * deps_dparams
 
         # 根据 Adam 优化算法进行梯度下降更新
         opt.adam_update(state, i, grad, cfg)
+
+        # 梯度更新完成后统一升级；beta 达到上限后不再增长
+        if state.beta < cfg.quant.beta_max:
+            quant.convergence_judgment(cfg, state, history, ws, obj)
 
         state.eps_opt = quant.quant_1bit(state.params, state, cfg)
         state.index_opt = np.sqrt(state.eps_opt)

@@ -21,22 +21,30 @@ def convergence_judgment(cfg, state, history, ws, obj):
 
 
 def convergence_judgment_analog(cfg, state, history):
+    """收敛升级：直接修改 state（与普通路径的 beta 更新保持一致）。
+
+    调用时机应在当轮梯度更新之后，使升级只对下一轮生效，
+    避免本轮正向结构与反向求导之间的滞后错位。
+    """
     if len(history.all_fom) < cfg.quant.test_length:
         print("The array does not have enough elements; "
               "it is impossible to make a judgment on convergence.")
-    else:
-        last_arrays = history.all_fom[-cfg.quant.test_length:]
-        last_elements = [array[-1] for array in last_arrays]
-        if ((max(last_elements) - min(last_elements)) < cfg.quant.threshold
-                or history.non_convergence >= 100):
-            if state.filter_R == (cfg.drc.filter_R_max - 1):
-                state.beta *= 1.2
-            else:
-                state.filter_R += 1
+        return
+
+    last_arrays = history.all_fom[-cfg.quant.test_length:]
+    last_elements = [array[-1] for array in last_arrays]
+    if ((max(last_elements) - min(last_elements)) < cfg.quant.threshold
+            or history.non_convergence >= 100):
+        print("The current optimization has converged.")
+        if state.filter_R == (cfg.drc.filter_R_max - 1):
+            state.beta *= 1.2
         else:
-            if state.beta > 1 or state.filter_R > cfg.drc.filter_R_min:
-                history.non_convergence += 1
-                print("The current optimization has not converged.")
+            state.filter_R += 1
+    else:
+        if state.beta > 1 or state.filter_R > cfg.drc.filter_R_min:
+            history.non_convergence += 1
+            print("The current optimization has not converged.")
+
     print(f"filter_R = {state.filter_R}")
     print(f"beta = {state.beta}")
 
