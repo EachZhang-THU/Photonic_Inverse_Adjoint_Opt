@@ -6,7 +6,8 @@ import numpy as np
 
 def fom_display(obj, state, history, ws, i):
 
-    every_fom = list(obj.fom)
+    objects = obj if isinstance(obj, list) else [obj]
+    every_fom = np.concatenate([item.fom for item in objects]).tolist()
     every_fom.append(np.sum(every_fom))
     every_fom = np.array(every_fom)
     history.all_fom.append(every_fom.copy())
@@ -33,13 +34,15 @@ def fom_training_display(obj, cfg, state, history, ws, i, all_batch_fom):
 
 def plot_optresult(obj, history, ws, i):
     iterations = range(1, len(history.all_fom) + 1)
+    objects = obj if isinstance(obj, list) else [obj]
+    foms = np.concatenate([item.fom for item in objects])
 
     # 误差曲线绘制
     fig, ax1 = plt.subplots()
     ax1.set_yscale('log')
-    for j in range(len(obj.fom)):
+    for j in range(len(foms)):
         ax1.plot(iterations, [sublist[j] for sublist in history.all_fom], label=f'fom {j}')
-    ax1.plot(iterations, [sublist[len(obj.fom)] for sublist in history.all_fom],
+    ax1.plot(iterations, [sublist[len(foms)] for sublist in history.all_fom],
              label='All fom', color='red')
 
     # 量化阶段（beta 参数表征）曲线绘制

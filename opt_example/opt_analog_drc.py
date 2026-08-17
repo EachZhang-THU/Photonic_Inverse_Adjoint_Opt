@@ -51,7 +51,6 @@ def main():
             grad = opt.calculate_gradient_2d_analog(obj, state, cfg, i)
             # 执行一次 Adam 更新
             opt.adam_update(state, i, grad, cfg)
-
             # 梯度更新完成后统一升级，仅对下一轮生效，避免滞后错位
             quant.convergence_judgment_analog(cfg, state, history)
         else:
